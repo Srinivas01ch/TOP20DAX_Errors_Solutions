@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>20 Common & Advanced DAX Errors</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=JetBrains+Mono:wght@400;700&family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        /* Define custom properties based on the palette */
+        :root {
+            --bg-dark-navy: #0F172A;
+            --accent-yellow: #F2C811;
+            --accent-teal: #00B3B3;
+            --text-white: #FFFFFF;
+            --text-light-gray: #D1D5DB;
+            --highlight-red: #EF4444;
+            --highlight-green: #22C55E;
+        }
+
+        /* Apply fonts */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark-navy);
+        }
+
+        h1, h2, h3, .font-heading {
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .font-code {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Carousel container styles */
+        .carousel-container {
+            max-width: 540px; /* 1080px / 2 */
+            width: 100%;
+            aspect-ratio: 1080 / 1350;
+            margin: 2rem auto;
+            position: relative;
+            overflow: hidden;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .slides-wrapper {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+            height: 100%;
+        }
+
+        .slide {
+            min-width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Slide specific styles */
+        .slide-header {
+            height: 20%;
+            background-color: var(--accent-yellow);
+            color: var(--text-white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            font-weight: 700;
+        }
+
+        .slide-body {
+            height: 80%;
+            background-color: var(--bg-dark-navy);
+            color: var(--text-white);
+            display: flex;
+            padding: 2rem;
+            position: relative;
+        }
+        
+        /* Faint grid background */
+        .slide-body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(0, 179, 179, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 179, 179, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+            opacity: 0.5;
+            z-index: 0;
+        }
+
+        .text-zone { width: 65%; position: relative; z-index: 1; }
+        .icon-zone { width: 35%; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1; }
+
+        .icon-svg {
+            width: 60%;
+            height: auto;
+            stroke: var(--text-white);
+            stroke-width: 1.5;
+            filter: drop-shadow(0 0 10px var(--accent-yellow));
+        }
+
+        .code-box {
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem; /* Equivalent to ~36pt on 1080px */
+            line-height: 1.4;
+        }
+
+        .error-box { background-color: rgba(239, 68, 68, 0.2); border-left: 4px solid var(--highlight-red); }
+        .fix-box { background-color: rgba(34, 197, 94, 0.2); border-left: 4px solid var(--highlight-green); }
+        
+        .tip-text { color: var(--text-light-gray); font-style: italic; }
+
+        /* Navigation */
+        .nav-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-arrow:hover { background-color: rgba(255,255,255,0.2); }
+        #prevBtn { left: 10px; }
+        #nextBtn { right: 10px; }
+        
+        /* Progress dots */
+        .progress-dots {
+            position: absolute;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 0.5rem;
+            z-index: 5;
+        }
+        .dot {
+            width: 8px;
+            height: 8px;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transition: background-color 0.3s;
+        }
+        .dot.active { background-color: var(--accent-yellow); }
+
+        /* Slide 1 Cover Styles */
+        .cover-slide {
+            background-color: var(--accent-yellow);
+            color: var(--bg-dark-navy);
+            text-align: center;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            position: relative;
+        }
+        .cover-slide h1 {
+            color: var(--text-white);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        .cover-slide .pbi-logo {
+            position: absolute;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            opacity: 0.8;
+        }
+
+        /* Slide 22 Outro Styles */
+        .outro-slide {
+            background: linear-gradient(135deg, var(--accent-teal), var(--bg-dark-navy));
+            color: var(--text-white);
+            text-align: center;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 flex items-center justify-center min-h-screen">
+
+    <div class="carousel-container">
+        <div class="slides-wrapper">
+            <!-- SLIDE 1: Cover -->
+            <div class="slide cover-slide">
+                <div class="text-center">
+                    <h1 class="text-6xl font-black mb-4">⚡ 20 Common & Advanced DAX Errors (and Fixes!)</h1>
+                    <p class="text-2xl font-bold text-white mb-8">Debug smarter. Model cleaner. Build faster.</p>
+                    <p class="text-xl text-gray-800">by schakravarthy 👨‍💻</p>
+                </div>
+                <!-- Power BI Logo Icon -->
+                <svg class="pbi-logo" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 4h4v16H4V4zm6 8h4v8h-4v-8zm6-5h4v13h-4V7z" fill="currentColor"></path></svg>
+            </div>
+
+            <!-- SLIDE 2: Syntax Errors -->
+            <div class="slide">
+                <div class="slide-header"><h2 class="text-4xl">⚙️ 1️⃣ Syntax Errors</h2></div>
+                <div class="slide-body">
+                    <div class="text-zone">
+                        <p class="mb-4 text-xl">Missing parentheses, commas, or wrong function names.</p>
+                        <div class="code-box error-box font-code">❌ = IF(Age > 18, "Adult", "Minor"</div>
+                        <div class="code-box fix-box font-code">✅ = IF(Age > 18, "Adult", "Minor")</div>
+                        <p class="tip-text">💡 The DAX editor often highlights these for you.</p>
+                    </div>
+                    <div class="icon-zone">
+                        <svg class="icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1 0-2l.15.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 3: Data Type Errors -->
+            <div class="slide">
+                <div class="slide-header"><h2 class="text-4xl">🧮 2️⃣ Data Type Mismatch</h2></div>
+                <div class="slide-body">
+                    <div class="text-zone">
+                        <p class="mb-4 text-xl">Trying to mix text and numbers in calculations.</p>
+                        <div class="code-box error-box font-code">❌ = Sales[Revenue] + "100"</div>
+                        <div class="code-box fix-box font-code">✅ = Sales[Revenue] + VALUE("100")</div>
+                        <p class="tip-text">💡 Always check column data types in your model view.</p>
+                    </div>
+                    <div class="icon-zone">
+                         <svg class="icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="10" x2="8" y2="10"></line><line x1="16" y1="14" x2="8" y2="14"></line><line x1="16" y1="18" x2="8" y2="18"></line></svg>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- SLIDE 4: Division by Zero -->
+            <div class="slide">
+                <div class="slide-header"><h2 class="text-4xl">➗ 3️⃣ Division by Zero</h2></div>
+                <div class="slide-body">
+                    <div class="text-zone">
+                        <p class="mb-4 text-xl">Dividing a number by zero or BLANK() causes an error.</p>
+                        <div class="code-box error-box font-code">❌ = Sales[Revenue] / Sales[Quantity]</div>
+                        <div class="code-box fix-box font-code">✅ = DIVIDE(Sales[Revenue], Sales[Quantity], 0)</div>
+                        <p class="tip-text">💡 The third argument in DIVIDE() is the alternate result.</p>
+                    </div>
+                    <div class="icon-zone">
+                        <svg class="icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="6" r="1"></circle><circle cx="12" cy="18" r="1"></circle><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- SLIDE 5: Circular Dependency -->
+            <div class="slide">
+                <div class="slide-header"><h2 class="text-4xl">🔄 4️⃣ Circular Dependency</h2></div>
+                <div class="slide-body">
+                    <div class="text-zone">
+                         <p class="mb-4 text-xl">A calculation refers to itself directly or indirectly.</p>
+                        <div class="code-box error-box font-code">❌ [Total Sales] = [Total Sales] + ...</div>
+                        <div class="code-box fix-box font-code">✅ Create a new measure, e.g., [Sales Base]</div>
+                        <p class="tip-text">💡 Redesign logic — avoid self-referencing measures.</p>
+                    </div>
+                    <div class="icon-zone">
+                         <svg class="icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 6: Relationship Errors -->
+            <div class="slide">
+                <div class="slide-header"><h2 class="text-4xl">🗂️ 5️⃣ Relationship Missing</h2></div>
+                <div class="slide-body">
+                    <div class="text-zone">
+                        <p class="mb-4 text-xl">RELATED() can't find a path between tables.</p>
+                        <div class="code-box error-box font-code">❌ = RELATED(Products[Category])</div>
+                        <div class="code-box fix-box font-code">✅ Create relationship or use LOOKUPVALUE()</div>
+                        <p class="tip-text">💡 Check the 'Manage relationships' view carefully.</p>
+                    </div>
+                    <div class="icon-zone">
+                        <svg class="icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"></path></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 7: Filter Context Confusion -->
+            <div class="slide">
+                <div class="slide-header"><h2 class="text-4xl">🧩 6️⃣ Filter vs Row Context</h2></div>
+                <div class="slide-body">
+                    <div class="text-zone">
+                        <p class="mb-4 text-xl">Using FILTER() where CALCULATE() is more efficient.</p>
+                        <div class="code-box error-box font-code">❌ Overusing FILTER() for simple conditions</div>
+                        <div class="code-box fix-box font-code">✅ = CALCULATE(SUM(Sales[Revenue]), Products[Category]="Bikes")</div>
+                        <p class="tip-text">💡 CALCULATE() modifies the filter context directly.</p>
+                    </div>
+                    <div class="icon-zone">
+                        <svg class="icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 8: Time Intelligence Errors -->
+            <div class="slide">
+                <div class="slide-header"><h2 class="text-4xl">🕰️ 7️⃣ Missing Date Table</h2></div>
+                <div class="slide-body">
+                    <div class="text-zone">
+                        <p class="mb-4 text-xl">Time intelligence functions fail without a proper date table.</p>
+                        <div class="code-box error-box font-code">❌ DATESYTD(Sales[OrderDate])</div>
+                        <div class="code-box fix-box font-code">✅ DATESYTD('Date'[Date])</div>
+                        <p class="tip-text">💡 Always create and mark a dedicated Date table in your model.</p>
+                    </div>
+                    <div class="icon-zone">
+                        <svg class="icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 9: BLANK Values -->
+            <div class="slide">
+                <div class="slide-header"><h2 class="text-4xl">🧱 8️⃣ Operations on BLANK()</h2></div>
+                <div class="slide-body">
+                    <div class="text-zone">
+                        <p class="mb-4 text-xl">BLANKs can spread through calculations unexpectedly.</p>
+                        <div class="code-box error-box font-code">❌ 100 + BLANK() --> results in BLANK()</div>
+                        <div class="code-box fix-box font-code">✅ COALESCE(Measure, 0) + 100</div>
+                        <p class="tip-text">💡 Use IF(ISBLANK()) or COALESCE() to handle blanks.</p>
+                    </div>
+                    <div class="icon-zone">
+                        <svg class="icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 10: Performance Issues -->
+            <div class="slide">
+                <div class="slide-header"><h2 class="text-4xl">🚀 9️⃣ Slow DAX Performance</h2></div>
+                <div class="slide-body">
+                    <div class="text-zone">
+                        <p class="mb-4 text-xl">Complex iterators over large tables can be slow.</p>
+                        <div class="code-box error-box font-code">❌ Complex FILTER(ALL(BigTable), ...)</div>
+                        <div class="code-box fix-box font-code">✅ Simplify with variables and CALCULATE()</div>
+                        <p class="tip-text">💡 Use Performance Analyzer and DAX Studio to find bottlenecks.</p>
+                    </div>
+                    <div class="icon-zone">
+                        <svg class="icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.3.05-3.12a2.49 2.49 0 0 0-3.12.07c-.66.56-1.16 1.34-1.93 2.05z"></path><path d="m12 15-3-3a9 9 0 0 1 3-13v13a9 9 0 0 1-3 3z"></path><path d="M17.5 19.5c1.5-1.26 2-5 2-5s-3.74.5-5 2c-.71.84-.7 2.3-.05 3.12a2.49 2.49 0 0 0 3.12-.07c.66-.56 1.16-1.34 1.93-2.05z"></path></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 11: Ambiguous Column References -->
+            <div class="slide">
+                 <div class="slide-header"><h2 class="text-4xl">🔗🔟 Ambiguous Columns</h2></div>
+                 <div class="slide-body">
+                    <div class="text-zone">
+                        <p class="mb-4 text-xl">Multiple tables have columns with the same name.</p>
+                        <div class="code-box error-box font-code">❌ SUM(Revenue)</div>
+                        <div class="code-box fix-box font-code">✅ SUM(Sales[Revenue])</div>
+                        <p class="tip-text">💡 Always fully qualify your column names with Table[Column].</p>
+                    </div>
+                    <div class="icon-zone">
+                         <svg class="icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- SLIDE 12: Nested Function Chaos -->
+            <div class="slide">
+                 <div class="slide-header"><h2 class="text-4xl">🧪 1️⃣1️⃣ Nested Functions</h2></div>
+                 <div class="slide-body">
+                    <div class="text-zone">
+                        <p class="mb-4 text-xl">Multiple nested CALCULATEs are hard to read and debug.</p>
+                        <div class="code-box error-box font-code">❌ CALCULATE(CALCULATE(..., filter1), filter2)</div>
+                        <div class="code-box fix-box font-code">✅ CALCULATE(..., filter1, filter2)</div>
+                        <p class="tip-text">💡 Combine filters into a single CALCULATE() statement.</p>
+                    </div>
+                    <div class="icon-zone">
+                         <svg class="icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 13: Aggregation Mismatch -->
+            <div class="slide">
+                 <div class="slide-header"><h2 class="text-4xl">📉 1️⃣2️⃣ Invalid Aggregations</h2></div>
+                 <div class="slide-body">
+                    <div class="text-zone">
+                        <p class="mb-4 text-xl">Using aggregation functions on non-numeric data types.</p>
+                        <div class="code-box error-box font-code">❌ AVERAGE(Sales[OrderDate])</div>
+                        <div class="code-box fix-box font-code">✅ DATEDIFF(MIN(Date), MAX(Date), DAY)</div>
+                        <p class="tip-text">💡 SUM, AVERAGE, etc. require numeric inputs.</p>
+                    </div>
+                    <div class="icon-zone">
+                         <svg class="icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 14: Context Transition -->
+            <div class="slide">
+                 <div class="slide-header"><h2 class="text-4xl">📊 1️⃣3️⃣ Row Context in Measures</h2></div>
+                 <div class="slide-body">
+                    <div class="text-zone">
+                        <p class="mb-4 text-xl">A measure used in a calculated column doesn't work as expected.</p>
+                        <div class="code-box error-box font-code">❌ [Quantity] * [Unit Price]</div>
+                        <div class="code-box fix-box font-code">✅ SUMX(Sales, Sales[Quantity] * Sales[Price])</div>
+                        <p class="tip-text">💡 Measures need an iterator like SUMX() to work over each row.</p>
+                    </div>
+                    <div class="icon-zone">
+                         <svg class="icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"></path><path d="M18 20V4"></path><path d="M6 20V16"></path></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 15: External Data Issues -->
+            <div class="slide">
+                 <div class="slide-header"><h2 class="text-4xl">🌐 1️⃣4️⃣ External Source Errors</h2></div>
+                 <div class="slide-body">
+                    <div class="text-zone">
+                        <p class="mb-4 text-xl">Errors during data refresh break calculations.</p>
+                        <div class="code-box error-box font-code">❌ [Measure] returning #ERROR after refresh</div>
+                        <div class="code-box fix-box font-code">✅ Validate source connections in Power Query.</div>
+                        <p class="tip-text">💡 Use IFERROR() for graceful handling of potential errors.</p>
+                    </div>
+                    <div class="icon-zone">
+                         <svg class="icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 16: Time Zone Conflicts -->
+            <div class="slide">
+                 <div class="slide-header"><h2 class="text-4xl">🕒 1️⃣5️⃣ Time Zone Conflicts</h2></div>
+                 <div class="slide-body">
+                    <div class="text-zone">
+                        <p class="mb-4 text-xl">NOW() uses local machine time, causing inconsistencies.</p>
+                        <div class="code-box error-box font-code">❌ Comparisons with NOW() give different results</div>
+                        <div class="code-box fix-box font-code">✅ Use UTCNOW() and UTC offset functions.</div>
+                        <p class="tip-text">💡 Standardize on UTC for consistent time-based analysis.</p>
+                    </div>
+                    <div class="icon-zone">
+                         <svg class="icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m15.5 16.5-4-4V7"></path></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 17: Missing Relationships in Time Intelligence -->
+            <div class="slide">
+                 <div class="slide-header"><h2 class="text-4xl">🔄 1️⃣6️⃣ Broken Date Relations</h2></div>
+                 <div class="slide-body">
+                    <div class="text-zone">
+                        <p class="mb-4 text-xl">Using an inactive relationship for time calculations.</p>
+                        <div class="code-box error-box font-code">❌ SAMEPERIODLASTYEAR() gives wrong results</div>
+                        <div class="code-box fix-box font-code">✅ CALCULATE(..., USERELATIONSHIP(Sales[ShipDate], 'Date'[Date]))</div>
+                        <p class="tip-text">💡 USERELATIONSHIP() activates an inactive relationship for a calculation.</p>
+                    </div>
+                    <div class="icon-zone">
+                         <svg class="icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.06 10.854 14 14.794m-4.502-9.622a4.896 4.896 0 0 1 6.924 0l1.414 1.414a4.896 4.896 0 0 1 0 6.924l-1.583 1.583a4.896 4.896 0 0 1-6.924 0l-1.414-1.414a4.896 4.896 0 0 1 0-6.924l1.583-1.583z"></path><path d="m14 14-4.5 4.5m-5.002-9.622a4.896 4.896 0 0 1 6.924 0l1.414 1.414a4.896 4.896 0 0 1 0 6.924l-1.583 1.583a4.896 4.896 0 0 1-6.924 0l-1.414-1.414a4.896 4.896 0 0 1 0-6.924l1.583-1.583z"></path></svg>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- SLIDE 18: Missing Columns/Tables -->
+            <div class="slide">
+                 <div class="slide-header"><h2 class="text-4xl">⚠️ 1️⃣7️⃣ Missing Model Elements</h2></div>
+                 <div class="slide-body">
+                    <div class="text-zone">
+                        <p class="mb-4 text-xl">A DAX formula references a column or table that was deleted or renamed.</p>
+                        <div class="code-box error-box font-code">❌ [Measure] breaks after model changes.</div>
+                        <div class="code-box fix-box font-code">✅ Verify field names in the formula bar.</div>
+                        <p class="tip-text">💡 Power BI will usually show an error in the fields pane.</p>
+                    </div>
+                    <div class="icon-zone">
+                         <svg class="icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 19: ALL() & ALLEXCEPT() Misuse -->
+            <div class="slide">
+                 <div class="slide-header"><h2 class="text-4xl">🧠 1️⃣8️⃣ Filter Context Mistakes</h2></div>
+                 <div class="slide-body">
+                    <div class="text-zone">
+                        <p class="mb-4 text-xl">Using ALL() when you mean to keep some filters active.</p>
+                        <div class="code-box error-box font-code">❌ Using ALL() removes all filters from a table.</div>
+                        <div class="code-box fix-box font-code">✅ Use ALLEXCEPT(Table, ColumnToKeepFilter)</div>
+                        <p class="tip-text">💡 ALLEXCEPT removes all filters *except* for the specified columns.</p>
+                    </div>
+                    <div class="icon-zone">
+                         <svg class="icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 21a2.5 2.5 0 0 1-2.5-2.5c0-.83.42-1.57 1.09-2.02"></path><path d="M15.5 21a2.5 2.5 0 0 0 2.5-2.5c0-.83-.42-1.57-1.09-2.02"></path><path d="M12 14a2.5 2.5 0 0 1-2.5-2.5c0-.83.42-1.57 1.09-2.02"></path><path d="M12 14a2.5 2.5 0 0 0 2.5-2.5c0-.83-.42-1.57-1.09-2.02"></path><path d="M8.5 7a2.5 2.5 0 0 1-2.5-2.5c0-.83.42-1.57 1.09-2.02"></path><path d="M8.5 7a2.5 2.5 0 0 0 2.5-2.5C11 3.67 10.58 2.93 10 2.5"></path><path d="M18 12h-3"></path><path d="m6 12-3 4"></path><path d="m6 12-3-4"></path><path d="m18 12-3 4"></path><path d="m18 12-3-4"></path></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 20: Measure Errors in Visuals -->
+            <div class="slide">
+                 <div class="slide-header"><h2 class="text-4xl">💡 1️⃣9️⃣ Wrong Visual Context</h2></div>
+                 <div class="slide-body">
+                    <div class="text-zone">
+                        <p class="mb-4 text-xl">A measure works in a table but gives strange results in a chart.</p>
+                        <div class="code-box error-box font-code">❌ A chart total doesn't match the sum of its parts.</div>
+                        <div class="code-box fix-box font-code">✅ Use SUMMARIZE or add necessary filters.</div>
+                        <p class="tip-text">💡 Test new measures in a table or matrix visual first to understand their context.</p>
+                    </div>
+                    <div class="icon-zone">
+                         <svg class="icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.09 16.5C16.92 16.5 18 15.42 18 13.59C18 12.18 17.26 11.13 16 10.5V10.5C17.26 9.87 18 8.82 18 7.41C18 5.58 16.92 4.5 15.09 4.5H9V16.5H15.09ZM12 7.5H14.64C15.39 7.5 15.75 8.04 15.75 8.52C15.75 8.97 15.39 9.51 14.64 9.51H12V7.5ZM12 13.5H15.03C15.81 13.5 16.2 13.95 16.2 14.49C16.2 15.03 15.81 15.48 15.03 15.48H12V13.5Z"/><path d="M12 12h3"></path></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 21: Miscellaneous Gotchas -->
+            <div class="slide">
+                 <div class="slide-header"><h2 class="text-4xl">🧾 2️⃣0️⃣ Bonus Tips</h2></div>
+                 <div class="slide-body">
+                    <div class="text-zone">
+                        <div class="code-box fix-box font-code">⚠️ Avoid volatile functions like NOW() in calculated columns.</div>
+                        <div class="code-box fix-box font-code">⚠️ Always specify the optional 'order' argument in RANKX().</div>
+                        <div class="code-box fix-box font-code">⚠️ Use DISTINCTCOUNT() instead of COUNT() for unique values.</div>
+                    </div>
+                    <div class="icon-zone">
+                         <svg class="icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 22: Outro / CTA -->
+            <div class="slide outro-slide">
+                <div class="text-center">
+                    <h2 class="text-5xl font-black mb-6">Mastering DAX =<br>Mastering Debugging 🧠</h2>
+                    <p class="text-2xl mb-4">💬 Comment your most annoying DAX error below 👇</p>
+                    <p class="text-xl">...and tag a colleague who still forgets DIVIDE() 😂</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Navigation -->
+        <button id="prevBtn" class="nav-arrow" aria-label="Previous slide">&#10094;</button>
+        <button id="nextBtn" class="nav-arrow" aria-label="Next slide">&#10095;</button>
+
+        <!-- Progress Dots -->
+        <div id="progressDots" class="progress-dots"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const slidesWrapper = document.querySelector('.slides-wrapper');
+            const slides = document.querySelectorAll('.slide');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const progressDotsContainer = document.getElementById('progressDots');
+            
+            let currentIndex = 0;
+            const totalSlides = slides.length;
+
+            // Create progress dots
+            for (let i = 0; i < totalSlides; i++) {
+                const dot = document.createElement('div');
+                dot.classList.add('dot');
+                dot.addEventListener('click', () => goToSlide(i));
+                progressDotsContainer.appendChild(dot);
+            }
+            const dots = document.querySelectorAll('.dot');
+
+            const updateCarousel = () => {
+                slidesWrapper.style.transform = `translateX(-${currentIndex * 100}%)`;
+                
+                // Update progress dots
+                dots.forEach((dot, index) => {
+                    dot.classList.toggle('active', index === currentIndex);
+                });
+
+                // Hide/show nav buttons
+                prevBtn.style.display = currentIndex === 0 ? 'none' : 'flex';
+                nextBtn.style.display = currentIndex === totalSlides - 1 ? 'none' : 'flex';
+            };
+
+            const goToSlide = (index) => {
+                currentIndex = index;
+                updateCarousel();
+            };
+
+            nextBtn.addEventListener('click', () => {
+                if (currentIndex < totalSlides - 1) {
+                    currentIndex++;
+                    updateCarousel();
+                }
+            });
+
+            prevBtn.addEventListener('click', () => {
+                if (currentIndex > 0) {
+                    currentIndex--;
+                    updateCarousel();
+                }
+            });
+            
+            // Keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                if(e.key === 'ArrowRight') {
+                     if (currentIndex < totalSlides - 1) {
+                        currentIndex++;
+                        updateCarousel();
+                    }
+                } else if (e.key === 'ArrowLeft') {
+                     if (currentIndex > 0) {
+                        currentIndex--;
+                        updateCarousel();
+                    }
+                }
+            });
+
+            // Initialize
+            updateCarousel();
+        });
+    </script>
+</body>
+</html>
